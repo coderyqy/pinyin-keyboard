@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import path from "path";
+import path, { format } from "path";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
 const { VantResolver } = require("unplugin-vue-components/resolvers");
@@ -29,6 +29,20 @@ export default defineConfig({
   ],
   base: "./",
   build: {
-    outDir: path.resolve(__dirname, "dist"),
+    lib: {
+      entry: path.resolve(__dirname, "src/components/index.ts"),
+      name: "pinyin-keyboard",
+      fileName: (format) => {
+        return `pinyin-keyboard.${format}.js`;
+      },
+    },
+    rollupOptions: {
+      external: ["vue"],
+      output: {
+        globals: {
+          vue: "Vue",
+        },
+      },
+    },
   },
 });

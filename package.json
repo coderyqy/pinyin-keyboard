@@ -1,8 +1,17 @@
 {
   "name": "pinyin-keyboard",
   "version": "0.1.0",
-  "private": true,
   "keywords": ["keyboard",  "pinyin-keyboard", "键盘", "虚拟键盘", "拼音输入法", "网页版键盘"],
+  "main": "./dist/pinyin-keyboard.umd.js",
+  "module": "./dist/pinyin-keyboard.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/pinyin-keyboard.es.js",
+      "require": "./dist/pinyin-keyboard.umd.js"
+    },
+    "./dist/style.css": "./dist/style.css"
+  },
+  "private": false,
   "scripts": {
     "start": "vite",
     "build": "vite build",

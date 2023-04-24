@@ -34,7 +34,7 @@
 <script lang="ts" setup>
 import "simple-keyboard/build/css/index.css";
 import { onMounted, defineProps, defineEmits, watch } from "vue";
-import initKeyboard from "./index";
+import initKeyboard from "./pinyin-keyboard";
 
 interface Props {
   inputId: string;
