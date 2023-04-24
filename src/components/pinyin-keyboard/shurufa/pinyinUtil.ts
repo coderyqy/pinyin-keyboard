@@ -238,56 +238,6 @@ function handlePolyphone(array: any, splitter: any, joinChar: any) {
   return simpleUnique(result);
 }
 
-/**
- * 根据词库找出多音字正确的读音
- * 这里只是非常简单的实现，效率和效果都有一些问题
- * 推荐使用第三方分词工具先对句子进行分词，然后再匹配多音字
- * @param chinese 需要转换的汉字
- * @param result 初步匹配出来的包含多个发音的拼音结果
- * @param splitter 返回结果拼接字符
- */
-function parsePolyphone(
-  chinese: string,
-  result: any,
-  splitter: string,
-  withtone: any
-) {
-  const poly = (window as any).pinyin_dict_polyphone;
-  const max = 7; // 最多只考虑7个汉字的多音字词，虽然词库里面有10个字的，但是数量非常少，为了整体效率暂时忽略之
-  let temp = poly[chinese];
-  if (temp) {
-    // 如果直接找到了结果
-    temp = temp.split(" ");
-    for (let i = 0; i < temp.length; i++) {
-      result[i] = temp[i] || result[i];
-      if (!withtone) result[i] = pinyinUtil.removeTone(result[i]);
-    }
-    return result.join(splitter);
-  }
-  for (let i = 0; i < chinese.length; i++) {
-    temp = "";
-    for (let j = 0; j < max && i + j < chinese.length; j++) {
-      if (!/^[\u2E80-\u9FFF]+$/.test(chinese[i + j])) break; // 如果碰到非汉字直接停止本次查找
-      temp += chinese[i + j];
-      let res = poly[temp];
-      if (res) {
-        // 如果找到了多音字词语
-        res = res.split(" ");
-        for (let k = 0; k <= j; k++) {
-          if (res[k])
-            result[i + k] = withtone ? res[k] : pinyinUtil.removeTone(res[k]);
-        }
-        break;
-      }
-    }
-  }
-  // 最后这一步是为了防止出现词库里面也没有包含的多音字词语
-  for (let i = 0; i < result.length; i++) {
-    result[i] = result[i].replace(/ .*$/g, "");
-  }
-  return result.join(splitter);
-}
-
 // 简单数组去重
 function simpleUnique(array: any[]) {
   const result = [];

@@ -7,7 +7,7 @@
       <div class="kb">
         <PinyinKeyboard
           :inputId="inputId"
-          :is-show="isShowKeyboard"
+          v-model:isShow="isShowKeyboard"
           :onText="onText"
           :on-hide-btn="onHide"
           :onkey-btndown="onkeyBtndown"
@@ -30,12 +30,14 @@ onMounted(() => {
     console.log("----", e);
     inputId.value = "myInput1";
     isShowKeyboard.value = true;
+    e.target?.blur();
   });
 
   document.getElementById("myInput2")?.addEventListener("focus", (e) => {
     console.log("----", e);
     inputId.value = "myInput2";
     isShowKeyboard.value = true;
+    e.target?.blur();
   });
 });
 
@@ -57,6 +59,5 @@ function onkeyBtndown(key: string) {
   position: absolute;
   left: 0;
   bottom: 0;
-  margin-bottom: 20px;
 }
 </style>

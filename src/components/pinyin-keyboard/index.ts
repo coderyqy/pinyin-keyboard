@@ -8,6 +8,10 @@ export default (
   onHideBtn: () => void,
   onkeyBtndown: (input: string) => void
 ) => {
+  // 顶部输入法显示
+  const inputPinyin = ref(""); // 输入的拼音
+  const hanziList = ref<string[]>([]); // 获取到的汉字
+
   const username = ref("");
   const phone = ref("");
   const message = ref("");
@@ -31,10 +35,6 @@ export default (
     pageCurrent: 1, // 当前页
     pageSize: 8, // 每页大小
     pageCount: 0, // 总页数
-    _target: "" as any,
-    _pinyinTarget: "" as any,
-    _resultTarget: "" as any,
-    _input: "" as any,
     /**
      * 初始化字典配置
      */
@@ -61,102 +61,14 @@ export default (
      * 初始化DOM结构
      */
     initDom: function () {
-      const temp = '<div class="pinyin"></div><div class="result"><ul></ul>';
-      const dom = document.createElement("div");
-      dom.id = "simle_input_method";
-      dom.className = "simple-input-method";
-      dom.innerHTML = temp;
-      const that = this as any;
-      // 初始化汉字选择和翻页键的点击事件
-      dom.addEventListener("click", function (e) {
-        const target = e.target as any;
-        if (target?.nodeName == "LI")
-          that.selectHanzi(parseInt(target.dataset.idx));
-        else if (target.nodeName == "SPAN") {
-          if (target.className == "page-up" && that.pageCurrent > 1) {
-            that.pageCurrent--;
-            that.refreshPage();
-          } else if (
-            target.className == "page-down" &&
-            that.pageCurrent < that.pageCount
-          ) {
-            that.pageCurrent++;
-            that.refreshPage();
-          }
-        }
-      });
-      document.querySelector(".shurufa")?.appendChild(dom);
+      console.log("");
     },
     /**
      * 初始化
      */
-    init: function (selector: string) {
+    init: function () {
       this.initDict();
       this.initDom();
-
-      const obj = document.querySelectorAll(selector);
-      this._target = document.querySelector("#simle_input_method") as any;
-      this._pinyinTarget = document.querySelector(
-        "#simle_input_method .pinyin"
-      ) as any;
-
-      this._resultTarget = document.querySelector(
-        "#simle_input_method .result ul"
-      ) as any;
-      const that = this as any;
-      for (let i = 0; i < obj.length; i++) {
-        console.log("1");
-        obj[i].addEventListener("keydown", function (e: any) {
-          console.log("---");
-          const keyCode = e.keyCode;
-          let preventDefault = false;
-          if (keyCode >= 65 && keyCode <= 90) {
-            // A-Z
-            that.addChar(String.fromCharCode(keyCode + 32), that);
-            preventDefault = true;
-          } else if (keyCode == 8 && that.pinyin) {
-            // 删除键
-            that.delChar();
-            preventDefault = true;
-          } else if (
-            keyCode >= 48 &&
-            keyCode <= 57 &&
-            !e.shiftKey &&
-            that.pinyin
-          ) {
-            // 1-9
-            that.selectHanzi(keyCode - 48);
-            preventDefault = true;
-          } else if (keyCode == 32 && that.pinyin) {
-            // 空格
-            that.selectHanzi(1);
-            preventDefault = true;
-          } else if (
-            keyCode == 33 &&
-            that.pageCount > 0 &&
-            that.pageCurrent > 1
-          ) {
-            // 上翻页
-            that.pageCurrent--;
-            that.refreshPage();
-            preventDefault = true;
-          } else if (
-            keyCode == 34 &&
-            that.pageCount > 0 &&
-            that.pageCurrent < that.pageCount
-          ) {
-            // 下翻页
-            that.pageCurrent++;
-            that.refreshPage();
-            preventDefault = true;
-          }
-          if (preventDefault) e.preventDefault();
-        });
-        obj[i].addEventListener("focus", function () {
-          // 如果选中的不是当前文本框，隐藏输入法
-          if (that._input !== that) that.hide();
-        });
-      }
     },
     /**
      * 单个拼音转单个汉字，例如输入 "a" 返回 "阿啊呵腌嗄吖锕"
@@ -207,7 +119,7 @@ export default (
       this.hanzi += hz;
       const idx = this.pinyin.indexOf("'");
       if (idx > 0) {
-        this.pinyin = this.pinyin.substr(idx + 1);
+        this.pinyin = this.pinyin.substring(idx + 1);
         this.refresh();
       } // 如果没有单引号，表示已经没有候选词了
       else {
@@ -230,35 +142,23 @@ export default (
       const count = this.result.length;
       this.pageCurrent = 1;
       this.pageCount = Math.ceil(count / this.pageSize);
-      this._pinyinTarget.innerHTML = this.hanzi + this.pinyin;
+
+      inputPinyin.value = this.hanzi + this.pinyin;
+
       this.refreshPage();
     },
     refreshPage: function () {
-      // const temp = this.result.slice(
-      //   (this.pageCurrent - 1) * this.pageSize,
-      //   this.pageCurrent * this.pageSize
-      // );
       const temp = this.result;
-      let html = "";
-      let i = 0;
-      temp.forEach(function (val) {
-        html += '<li data-idx="' + ++i + '">' + val + "</li>";
-      });
-      // this._target.querySelector(".page-up").style.opacity =
-      //   this.pageCurrent > 1 ? "1" : ".3";
-      // this._target.querySelector(".page-down").style.opacity =
-      //   this.pageCurrent < this.pageCount ? "1" : ".3";
-      this._resultTarget.innerHTML = html;
+      hanziList.value = temp;
     },
     addChar: function (ch: string, obj: any) {
       console.log("addChar:", ch, obj);
       onkeyBtndown(ch);
-      if (this.pinyin.length == 0) {
-        // 长度为1，显示输入法
-        // this.show(obj) // 在那个元素上面显示
-        document.getElementById("simle_input_method")!.style.display = "block";
-      }
+
       this.pinyin += ch;
+
+      inputPinyin.value += ch;
+
       this.refresh();
     },
     delChar: function () {
@@ -267,10 +167,6 @@ export default (
       if (inputDom.selectionStart !== inputDom.selectionEnd) {
         console.log(inputDom.selectionStart, inputDom.selectionEnd);
 
-        // inputDom.setSelectionRange(
-        //   inputDom.selectionStart,
-        //   inputDom.selectionStart
-        // );
         const str = inputDom.value;
 
         const start = str.substring(0, inputDom.selectionStart as number);
@@ -293,17 +189,12 @@ export default (
       this.pinyin = this.pinyin.substr(0, this.pinyin.length - 1);
       this.refresh();
     },
-    show: function (obj: any) {
-      // var pos = obj.getBoundingClientRect()
-      // this._target.style.left = pos.left + 'px'
-      // this._target.style.top = pos.top + pos.height + document.body.scrollTop + 'px'
-      // this._input = obj
-      // this._target.style.display = 'block'
+    show: function () {
+      console.log("");
     },
     hide: function () {
       this.reset();
       this.pinyin = "";
-      this._target.style.display = "none";
     },
     reset: function () {
       this.hanzi = "";
@@ -311,7 +202,8 @@ export default (
       this.result = [];
       this.pageCurrent = 1;
       this.pageCount = 0;
-      this._pinyinTarget.innerHTML = "";
+      inputPinyin.value = "";
+      hanziList.value = [];
     },
   };
   const zhSpan =
@@ -390,31 +282,16 @@ export default (
   const isNumbers = ref(false);
   function onChange(input: string) {
     console.log("--onChange", input);
-
     if (
       isNumbers.value ||
       currentKbShift.value == "en" ||
       "，,。.?".indexOf(input) != -1
     ) {
-      onkeyBtndown(input);
-      SimpleInputMethod.hide();
       // 这里是键盘的
-      inputDom.focus();
-      document.activeElement?.blur();
-      const start = inputDom.selectionStart as number;
-      const end = inputDom.selectionEnd as number;
-      console.log(start, end);
+      SimpleInputMethod.hide();
+      onkeyBtndown(input);
+      changeInputValue(input);
 
-      // 获取文本框中已有的文字
-      const value = inputDom.value;
-
-      // 将输入的文字插入到文本框中
-      inputDom.value = value.slice(0, start) + input + value.slice(end);
-
-      const newStart = start + input.length;
-      inputDom.setSelectionRange(newStart, newStart);
-
-      console.log("Input changed", input, newStart);
       keyboard.value?.setInput("");
     }
   }
@@ -444,6 +321,7 @@ export default (
       button !== "{ent}" &&
       button !== "{switchLower}"
     ) {
+      // 变为小写才传参数
       SimpleInputMethod.addChar(button.toLowerCase(), "");
     }
 
@@ -588,37 +466,16 @@ export default (
     kbShow.value = false;
   }
 
-  let prevSelectionStart = 0;
-  let prevSelectionEnd = 0;
-
   function changeInputValue(str: string) {
-    inputDom.focus();
-    document.activeElement?.blur();
-    // 获取文本框中已有的文字
-    const value = inputDom.value;
-
     // 将输入的文字插入到文本框中
-    inputDom.value =
-      value.slice(0, prevSelectionStart) + str + value.slice(prevSelectionEnd);
-    prevSelectionStart++;
-    prevSelectionEnd++;
-    inputDom.setSelectionRange(prevSelectionStart, prevSelectionEnd);
-
+    inputDom.value += str;
     onText(inputDom.value, str);
   }
 
   // 初始化键盘
   function initPinYinKeyboard() {
-    SimpleInputMethod.init(".shurufa");
+    SimpleInputMethod.init();
     initKeyboardEle();
-
-    const pinyin = document.querySelector(
-      "#simle_input_method .pinyin"
-    ) as HTMLDivElement;
-
-    pinyin.onclick = function () {
-      console.log("最终得到得文字:", (window as any).myText);
-    };
   }
 
   function changeInputId(inputId: string) {
@@ -637,6 +494,8 @@ export default (
   }
 
   return {
+    inputPinyin,
+    hanziList,
     initPinYinKeyboard,
     changeInputId,
     SimpleInputMethod,
