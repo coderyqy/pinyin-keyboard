@@ -4,29 +4,18 @@ import { ref } from "vue";
 import pinyinUtil from "./shurufa/pinyinUtil";
 
 export default (
-  onText: (fullText: string, singleText: string) => void,
-  onHideBtn: () => void,
-  onkeyBtndown: (input: string) => void
+  onText?: (fullText: string, singleText: string) => void,
+  onHideBtn?: () => void,
+  onkeyBtndown?: (input: string) => void,
+  onEnter?: () => void
 ) => {
   // 顶部输入法显示
   const inputPinyin = ref(""); // 输入的拼音
   const hanziList = ref<string[]>([]); // 获取到的汉字
 
-  const username = ref("");
-  const phone = ref("");
-  const message = ref("");
   const keyboard = ref<Keyboard>();
-  const inputName = ref("");
-  const kbShow = ref(true);
-  const moveY = ref(0);
   const currentKbShift = ref("zh");
-  const isLandscape = ref(false);
-  const landscapeInput = ref("");
   let inputDom: HTMLInputElement;
-
-  if (window.innerWidth > window.innerHeight) {
-    isLandscape.value = true;
-  } else isLandscape.value = false;
 
   const SimpleInputMethod = {
     hanzi: "", // 候选汉字
@@ -58,17 +47,10 @@ export default (
       }
     },
     /**
-     * 初始化DOM结构
-     */
-    initDom: function () {
-      console.log("");
-    },
-    /**
      * 初始化
      */
     init: function () {
       this.initDict();
-      this.initDom();
     },
     /**
      * 单个拼音转单个汉字，例如输入 "a" 返回 "阿啊呵腌嗄吖锕"
@@ -114,7 +96,6 @@ export default (
      */
     selectHanzi: function (i: any) {
       const hz = this.result[(this.pageCurrent - 1) * this.pageSize + i - 1];
-      console.log("选择文字 selectHanzi:", i, hz);
       if (!hz) return;
       this.hanzi += hz;
       const idx = this.pinyin.indexOf("'");
@@ -151,9 +132,9 @@ export default (
       const temp = this.result;
       hanziList.value = temp;
     },
+    // 点击键盘按钮，第一时间会调用此方法
     addChar: function (ch: string, obj: any) {
-      console.log("addChar:", ch, obj);
-      onkeyBtndown(ch);
+      onkeyBtndown && onkeyBtndown(ch);
 
       this.pinyin += ch;
 
@@ -162,35 +143,22 @@ export default (
       this.refresh();
     },
     delChar: function () {
-      console.log("删除");
-
+      if (!checkInputDom()) return;
       if (inputDom.selectionStart !== inputDom.selectionEnd) {
-        console.log(inputDom.selectionStart, inputDom.selectionEnd);
-
         const str = inputDom.value;
-
         const start = str.substring(0, inputDom.selectionStart as number);
-        console.log("start:", start);
-
         const end = str.substring(inputDom.selectionEnd as number);
-        console.log("end:", end);
-
         inputDom.value = start + end;
-
         return;
       }
 
       if (this.pinyin.length <= 1) {
         this.hide();
         inputDom.value = inputDom.value.substring(0, inputDom.value.length - 1);
-
         return;
       }
       this.pinyin = this.pinyin.substr(0, this.pinyin.length - 1);
       this.refresh();
-    },
-    show: function () {
-      console.log("");
     },
     hide: function () {
       this.reset();
@@ -233,6 +201,10 @@ export default (
           class: "myCustomSpace",
           buttons: "{space}",
         },
+        {
+          class: "myCustomNumber",
+          buttons: "1 2 3 4 5 6 7 8 9 0",
+        },
       ],
       mergeDisplay: true,
       layoutName: "default",
@@ -243,13 +215,13 @@ export default (
           "{participle} Z X C V B N M {backspace}",
           "{numbers} ， {space} 。 {shift} {ent}",
         ],
-        shift: [
+        lower: [
           "Q W E R T Y U I O P",
           "A S D F G H J K L",
           "{switchLower} Z X C V B N M {backspace}",
           "{numbers} , {space} . {shift} {ent}",
         ],
-        lower: [
+        shift: [
           "q w e r t y u i o p",
           "a s d f g h j k l",
           "{switchLower} z x c v b n m {backspace}",
@@ -280,8 +252,8 @@ export default (
     });
   }
   const isNumbers = ref(false);
+  // 监听键盘改变
   function onChange(input: string) {
-    console.log("--onChange", input);
     if (
       isNumbers.value ||
       currentKbShift.value == "en" ||
@@ -289,25 +261,24 @@ export default (
     ) {
       // 这里是键盘的
       SimpleInputMethod.hide();
-      onkeyBtndown(input);
+      onkeyBtndown && onkeyBtndown(input);
       changeInputValue(input);
 
       keyboard.value?.setInput("");
     }
   }
 
+  // 点击键盘按钮
   function onKeyPress(button: string) {
-    console.log("---onKeyPress", button);
-
     if (currentKbShift.value == "en") {
       keyboard.value?.setInput("");
     }
 
+    // 切换到数字
     if (button === "{numbers}" || "1234567890".indexOf(button) != -1) {
       isNumbers.value = true;
       keyboard.value?.setInput("");
       SimpleInputMethod.hide();
-      console.log("切换到数字");
     } else {
       isNumbers.value = false;
     }
@@ -328,9 +299,9 @@ export default (
     if (button === "{shift}" || button === "{lock}") handleShift();
     if (button === "{numbers}" || button === "{abc}") handleNumbers();
 
-    // 隐藏按钮
+    // 右下角按钮按钮
     if (button === "{ent}") {
-      onHideBtn();
+      onEnter && onEnter();
     }
 
     if (button === "{backspace}") {
@@ -432,7 +403,7 @@ export default (
       display: {
         "{participle}": "分词",
         "{numbers}": "123",
-        "{ent}": "隐藏",
+        "{ent}": "开始",
         "{escape}": "esc ⎋",
         "{tab}": "tab ⇥",
         "{backspace}": "⌫",
@@ -450,26 +421,19 @@ export default (
     });
   }
 
-  function handleTouch(type: string) {
-    if (isLandscape.value) return;
-    inputName.value = type;
-    if (type == "username") landscapeInput.value = username.value;
-    if (type == "phone") landscapeInput.value = phone.value;
-    if (type == "message") landscapeInput.value = message.value;
-    kbShow.value = true;
-    moveY.value = 19;
-  }
-
-  function closeKB() {
-    // inputName.value = ''
-    moveY.value = 0;
-    kbShow.value = false;
-  }
-
   function changeInputValue(str: string) {
+    if (!checkInputDom()) return;
     // 将输入的文字插入到文本框中
     inputDom.value += str;
-    onText(inputDom.value, str);
+    onText && onText(inputDom.value, str);
+  }
+
+  function checkInputDom() {
+    if (!inputDom) {
+      console.error("inputId不存在或者错误，请检查");
+      console.log("获取inputDom失败:", inputDom);
+      return false;
+    } else return true;
   }
 
   // 初始化键盘
@@ -483,13 +447,11 @@ export default (
       console.error("inputId 不能为空");
     }
     const input = document.getElementById(inputId) as HTMLInputElement;
-
     if (!input) {
       console.error(
         "使用此inputId获取不到元素, 请检查inputId是否错误 or 在onMounted之后再改变inputId"
       );
     }
-
     inputDom = input;
   }
 
@@ -500,15 +462,5 @@ export default (
     changeInputId,
     SimpleInputMethod,
     initKeyboardEle,
-    username,
-    phone,
-    message,
-    handleTouch,
-    closeKB,
-    inputName,
-    kbShow,
-    moveY,
-    isLandscape,
-    landscapeInput,
   };
 };

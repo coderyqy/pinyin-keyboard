@@ -1,7 +1,7 @@
 <template>
   <div class="container" v-show="props.isShow">
     <div>
-      <div class="box" v-show="kbShow">
+      <div class="box">
         <!-- 顶部输入法 -->
         <div class="shurufa">
           <div
@@ -35,13 +35,35 @@
 import "simple-keyboard/build/css/index.css";
 import { onMounted, defineProps, defineEmits, watch } from "vue";
 import initKeyboard from "./pinyin-keyboard";
-
 interface Props {
-  inputId: string;
+  /**
+   * 是否显示键盘
+   */
   isShow: boolean;
-  onText: (fullText: string, singleText: string) => void;
-  onHideBtn: () => void;
-  onkeyBtndown: (str: string) => void;
+  /**
+   * 需要弹出键盘的输入框的id
+   * @param inputId: string
+   */
+  inputId: string;
+  /**
+   * 监听文字输出
+   * @param fullText 文本框中的所有字符
+   * @param singleText 此次得到的字符
+   */
+  onText?: (fullText: string, singleText: string) => void;
+  /**
+   * 监听键盘隐藏
+   */
+  onHideBtn?: () => void;
+  /**
+   * 监听键盘按钮按下
+   * @param str 按下那个按钮
+   */
+  onkeyBtndown?: (str: string) => void;
+  /**
+   * 监听右下角开始按钮点击
+   */
+  onEnter?: () => void;
 }
 
 const props = defineProps<Props>();
@@ -49,6 +71,7 @@ const props = defineProps<Props>();
 const emit = defineEmits(["update:isShow"]);
 
 function hidekB() {
+  props.onHideBtn && props.onHideBtn();
   emit("update:isShow", false);
 }
 
@@ -57,9 +80,13 @@ const {
   hanziList,
   SimpleInputMethod,
   initPinYinKeyboard,
-  kbShow,
   changeInputId,
-} = initKeyboard(props.onText, props.onHideBtn, props.onkeyBtndown);
+} = initKeyboard(
+  props.onText,
+  props.onHideBtn,
+  props.onkeyBtndown,
+  props.onEnter
+);
 
 onMounted(() => {
   initPinYinKeyboard();

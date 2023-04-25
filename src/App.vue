@@ -6,11 +6,12 @@
 
       <div class="kb">
         <PinyinKeyboard
-          :inputId="inputId"
           v-model:isShow="isShowKeyboard"
+          :inputId="inputId"
           :onText="onText"
           :on-hide-btn="onHide"
           :onkey-btndown="onkeyBtndown"
+          :onEnter="onEnter"
         />
       </div>
     </div>
@@ -21,7 +22,7 @@
 import PinyinKeyboard from "@/components/pinyin-keyboard/pinyin-keyboard.vue";
 import { onMounted, ref } from "vue";
 
-const isShowKeyboard = ref(false);
+const isShowKeyboard = ref(true);
 const inputId = ref("");
 
 onMounted(() => {
@@ -42,7 +43,7 @@ onMounted(() => {
 });
 
 function onText(fullText: string, singleText: string): void {
-  console.log(fullText, singleText);
+  console.log("onText:", fullText, singleText);
 }
 
 function onHide() {
@@ -51,6 +52,10 @@ function onHide() {
 
 function onkeyBtndown(key: string) {
   console.log("键盘按钮触发：", key);
+}
+
+function onEnter() {
+  console.log("右下角开始按钮被触发");
 }
 </script>
 

@@ -1,7 +1,17 @@
 {
   "name": "pinyin-keyboard",
-  "version": "0.1.0",
-  "keywords": ["keyboard",  "pinyin-keyboard", "键盘", "虚拟键盘", "拼音输入法", "网页版键盘"],
+  "version": "0.1.1",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "keyboard",
+    "pinyin-keyboard",
+    "键盘",
+    "虚拟键盘",
+    "拼音输入法",
+    "网页版键盘"
+  ],
   "main": "./dist/pinyin-keyboard.umd.js",
   "module": "./dist/pinyin-keyboard.es.js",
   "exports": {
@@ -22,7 +32,6 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
-    "pinia": "^2.0.17",
     "simple-keyboard": "^3.5.50",
     "vue": "^3.2.13"
   },

@@ -10,6 +10,7 @@
   font-weight: bold;
   height: 22px;
   padding: 0 14px;
+  text-align: left;
 }
 .simple-input-method .result {
   box-sizing: border-box;
@@ -57,6 +58,10 @@
   background-color: #d3d3d3;
   flex: 1;
   font-size: 14px;
+}
+
+.hg-theme-default .hg-button.myCustomNumber {
+  flex: 1;
 }
 
 .hg-theme-default .hg-button.myCustomPlaceholder {
