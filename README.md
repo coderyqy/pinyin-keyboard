@@ -117,4 +117,4 @@ npm install pinyin-keyboard
 
 ## LICENSE
 
-Vant is [MIT](https://github.com/youzan/vant/blob/main/LICENSE) licensed.
+pinyin-keyboard is [MIT](https://github.com/youzan/vant/blob/main/LICENSE) licensed.
