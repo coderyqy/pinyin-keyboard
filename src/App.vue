@@ -12,7 +12,16 @@
           :on-hide-btn="onHide"
           :onkey-btndown="onkeyBtndown"
           :onEnter="onEnter"
-        />
+          :isShowUtilsContent="false"
+        >
+          <template #kb-utils>
+            <span></span>
+          </template>
+
+          <template #utils-content>
+            <span></span>
+          </template>
+        </PinyinKeyboard>
       </div>
     </div>
   </div>
@@ -22,7 +31,7 @@
 import PinyinKeyboard from "@/components/pinyin-keyboard/pinyin-keyboard.vue";
 import { onMounted, ref } from "vue";
 
-const isShowKeyboard = ref(true);
+const isShowKeyboard = ref(false);
 const inputId = ref("");
 
 onMounted(() => {

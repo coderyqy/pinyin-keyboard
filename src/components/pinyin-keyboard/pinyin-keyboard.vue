@@ -20,6 +20,9 @@
               </ul>
             </div>
             <div v-else class="result pinyin-utils">
+              <div class="kb-utils">
+                <slot name="kb-utils"></slot>
+              </div>
               <div class="hide-btn" @click="hidekB"></div>
             </div>
           </div>
@@ -28,6 +31,10 @@
         <div class="simple-keyboard"></div>
       </div>
     </div>
+    <!-- 工具内容 -->
+    <div class="utils-content" v-if="props.isShowUtilsContent">
+      <slot name="utils-content"></slot>
+    </div>
   </div>
 </template>
 
@@ -35,6 +42,7 @@
 import "simple-keyboard/build/css/index.css";
 import { onMounted, defineProps, defineEmits, watch } from "vue";
 import initKeyboard from "./pinyin-keyboard";
+
 interface Props {
   /**
    * 是否显示键盘
@@ -45,6 +53,10 @@ interface Props {
    * @param inputId: string
    */
   inputId: string;
+  /**
+   * 是否显示键盘工具栏内容
+   */
+  isShowUtilsContent?: boolean;
   /**
    * 监听文字输出
    * @param fullText 文本框中的所有字符
@@ -95,7 +107,6 @@ onMounted(() => {
     () => props.inputId,
     (value) => {
       console.log("value:", value);
-
       changeInputId(value);
     }
   );
@@ -118,6 +129,7 @@ onMounted(() => {
   margin-bottom: 30px;
 }
 .container {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -145,14 +157,21 @@ onMounted(() => {
 
 .pinyin-utils {
   display: flex;
-  justify-content: flex-end;
+  width: 100%;
   height: 40px;
   align-items: center;
-  margin-right: 18px;
+  .kb-utils {
+    box-sizing: border-box;
+    width: calc(100% - 66px);
+    height: 100%;
+  }
+
   .hide-btn {
     position: relative;
     width: 24px;
     height: 24px;
+    margin-right: 14px;
+    margin-left: auto;
     background: url(./img/icon-hide.png) no-repeat center/contain;
     &::after {
       content: "";
@@ -164,5 +183,13 @@ onMounted(() => {
       background-color: #707070;
     }
   }
+}
+.utils-content {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
 }
 </style>
