@@ -2,13 +2,17 @@
   "name": "pinyin-keyboard",
   "version": "0.1.0",
   "files": [
-    "dist"
+    "dist",
+    "docs",
+    "LICENSE",
+    "README.md"
   ],
   "keywords": [
     "keyboard",
     "pinyin-keyboard",
     "mobile-pinyin-keyboard",
     "键盘",
+    "vue键盘",
     "虚拟键盘",
     "拼音输入法",
     "网页版键盘",
