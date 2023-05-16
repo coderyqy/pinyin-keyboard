@@ -35,6 +35,17 @@
     <div class="utils-content" v-if="props.isShowUtilsContent">
       <slot name="utils-content"></slot>
     </div>
+
+    <div class="pinyin-symbol" v-show="isShowSymbol">
+      <div class="symbol">
+        <template v-for="(zhs, zh_i) in publishZHSymbol" :key="zh_i">
+          <span>{{ zhs }}</span>
+        </template>
+      </div>
+      <div class="symbol-utils">
+        <span @click="symbolBack">返回</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -42,6 +53,7 @@
 import "simple-keyboard/build/css/index.css";
 import { onMounted, defineProps, defineEmits, watch } from "vue";
 import initKeyboard from "./pinyin-keyboard";
+import { publishENSymbol, publishZHSymbol } from "./pinyin-symbol";
 
 interface Props {
   /**
@@ -93,6 +105,8 @@ const {
   SimpleInputMethod,
   initPinYinKeyboard,
   changeInputId,
+  isShowSymbol,
+  symbolBack,
 } = initKeyboard(
   props.onText,
   props.onHideBtn,
@@ -191,5 +205,55 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   background: #fff;
+}
+
+.pinyin-symbol {
+  display: flex;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-top: 1px solid #eee;
+  background: #fff;
+  .symbol {
+    display: flex;
+    flex-wrap: wrap;
+    width: 80%;
+    height: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    span {
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 25%;
+      aspect-ratio: 1/1;
+      text-align: center;
+      border-right: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+    }
+    /* 隐藏滚动条 */
+    &::-webkit-scrollbar {
+      display: none; /* 隐藏滚动条，仅适用于WebKit内核的浏览器 */
+    }
+  }
+  .symbol-utils {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    span {
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      border-bottom: 1px solid #eee;
+      border-right: 1px solid #eee;
+      aspect-ratio: 1/1;
+      background-color: #d3d3d3;
+    }
+  }
 }
 </style>

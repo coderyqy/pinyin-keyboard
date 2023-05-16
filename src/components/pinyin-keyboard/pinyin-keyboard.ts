@@ -17,6 +17,9 @@ export default (
   const currentKbShift = ref("zh");
   let inputDom: HTMLInputElement;
 
+  // 是否显示符号
+  const isShowSymbol = ref(false);
+
   const SimpleInputMethod = {
     hanzi: "", // 候选汉字
     pinyin: "", // 候选拼音
@@ -77,7 +80,7 @@ export default (
         let flag = false;
         if (i + 1 < pinyin.length) {
           for (let j = 1, len = pinyin.length; j <= 5 && i + j < len; j++) {
-            if (this.getSingleHanzi(pinyin.substr(0, i + j + 1))) {
+            if (this.getSingleHanzi(pinyin.substring(0, i + j + 1))) {
               flag = true;
               break;
             }
@@ -86,7 +89,7 @@ export default (
         if (!flag)
           return [
             result.split(""),
-            pinyin.substr(0, i + 1) + "'" + pinyin.substr(i + 1),
+            pinyin.substring(0, i + 1) + "'" + pinyin.substring(i + 1),
           ];
       }
       return [[], ""]; // 理论上一般不会出现这种情况
@@ -133,13 +136,10 @@ export default (
       hanziList.value = temp;
     },
     // 点击键盘按钮，第一时间会调用此方法
-    addChar: function (ch: string, obj: any) {
+    addChar: function (ch: string) {
       onkeyBtndown && onkeyBtndown(ch);
-
       this.pinyin += ch;
-
       inputPinyin.value += ch;
-
       this.refresh();
     },
     delChar: function () {
@@ -153,11 +153,12 @@ export default (
       }
 
       if (this.pinyin.length <= 1) {
+        console.log("<= 1", this.hanzi);
         this.hide();
         inputDom.value = inputDom.value.substring(0, inputDom.value.length - 1);
         return;
       }
-      this.pinyin = this.pinyin.substr(0, this.pinyin.length - 1);
+      this.pinyin = this.pinyin.substring(0, this.pinyin.length - 1);
       this.refresh();
     },
     hide: function () {
@@ -187,7 +188,7 @@ export default (
         {
           class: "myCustomClass",
           buttons:
-            "{participle} {switchLower} {numbers} {backspace} {shift} {ent} {abc}",
+            "{symbol} {participle} {switchLower} {numbers} {backspace} {shift} {ent} {abc}",
         },
         {
           class: "myCustomPlaceholder",
@@ -213,19 +214,19 @@ export default (
           "Q W E R T Y U I O P",
           "A S D F G H J K L",
           "{participle} Z X C V B N M {backspace}",
-          "{numbers} ， {space} 。 {shift} {ent}",
+          "{symbol} {numbers} ， {space} 。 {shift} {ent}",
         ],
         lower: [
           "Q W E R T Y U I O P",
           "A S D F G H J K L",
           "{switchLower} Z X C V B N M {backspace}",
-          "{numbers} , {space} . {shift} {ent}",
+          "{symbol} {numbers} , {space} . {shift} {ent}",
         ],
         shift: [
           "q w e r t y u i o p",
           "a s d f g h j k l",
           "{switchLower} z x c v b n m {backspace}",
-          "{numbers} , {space} . {shift} {ent}",
+          "{symbol} {numbers} , {space} . {shift} {ent}",
         ],
         numbers: ["1 2 3", "4 5 6", "7 8 9", "{abc} 0 {backspace}"],
       },
@@ -248,6 +249,7 @@ export default (
         "{metaright}": "cmd ⌘",
         "{abc}": "ABC",
         "{switchLower}": "大写",
+        "{symbol}": "符",
       },
     });
   }
@@ -263,7 +265,6 @@ export default (
       SimpleInputMethod.hide();
       onkeyBtndown && onkeyBtndown(input);
       changeInputValue(input);
-
       keyboard.value?.setInput("");
     }
   }
@@ -272,6 +273,10 @@ export default (
   function onKeyPress(button: string) {
     if (currentKbShift.value == "en") {
       keyboard.value?.setInput("");
+    }
+
+    if (button === "{symbol}") {
+      isShowSymbol.value = true;
     }
 
     // 切换到数字
@@ -293,7 +298,7 @@ export default (
       button !== "{switchLower}"
     ) {
       // 变为小写才传参数
-      SimpleInputMethod.addChar(button.toLowerCase(), "");
+      SimpleInputMethod.addChar(button.toLowerCase());
     }
 
     if (button === "{shift}" || button === "{lock}") handleShift();
@@ -455,6 +460,10 @@ export default (
     inputDom = input;
   }
 
+  function symbolBack() {
+    isShowSymbol.value = false;
+  }
+
   return {
     inputPinyin,
     hanziList,
@@ -462,5 +471,7 @@ export default (
     changeInputId,
     SimpleInputMethod,
     initKeyboardEle,
+    isShowSymbol,
+    symbolBack,
   };
 };
