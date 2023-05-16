@@ -1,23 +1,22 @@
 {
   "name": "pinyin-keyboard",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "files": [
     "dist",
-    "docs",
     "LICENSE",
     "README.md"
   ],
   "keywords": [
     "keyboard",
     "pinyin-keyboard",
-    "mobile-pinyin-keyboard",
     "键盘",
-    "vue键盘",
+    "vue3键盘",
     "虚拟键盘",
     "拼音输入法",
     "网页版键盘",
     "手机虚拟键盘"
   ],
+  "repository": "https://github.com/coderyqy/pinyin-keyboard",
   "main": "./dist/pinyin-keyboard.umd.js",
   "module": "./dist/pinyin-keyboard.es.js",
   "exports": {
