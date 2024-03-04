@@ -2,9 +2,14 @@ import Keyboard from "simple-keyboard";
 import "simple-keyboard/build/css/index.css";
 import { ref } from "vue";
 import pinyinUtil from "./shurufa/pinyinUtil";
+import { enSpan, keyboardEle, zhSpan } from "./keyboardEle";
+import { LayoutName } from "./Enum";
 
 export default (
+  /**监听文字变化，传入两个参数，此次变化后的整体文字 fullText，和此次变化的字 singleText */
   onText?: (fullText: string, singleText: string) => void,
+  /**监听删除按钮，传入一个参数，此次变化后的整体文字 fullText */
+  onDelete?: (fullText: string) => void,
   onHideBtn?: () => void,
   onkeyBtndown?: (input: string) => void,
   onEnter?: () => void
@@ -16,6 +21,8 @@ export default (
   const keyboard = ref<Keyboard>();
   const currentKbShift = ref("zh");
   let inputDom: HTMLInputElement;
+  /**此次键盘显示时的输入值，当键盘隐藏会清空，键盘产生的值请使用者自行保存 */
+  let inputValue = "";
 
   // 是否显示符号
   const isShowSymbol = ref(false);
@@ -137,6 +144,8 @@ export default (
     },
     // 点击键盘按钮，第一时间会调用此方法
     addChar: function (ch: string) {
+      console.log("addChar: ", ch);
+
       onkeyBtndown && onkeyBtndown(ch);
       this.pinyin += ch;
       inputPinyin.value += ch;
@@ -149,6 +158,8 @@ export default (
         const start = str.substring(0, inputDom.selectionStart as number);
         const end = str.substring(inputDom.selectionEnd as number);
         inputDom.value = start + end;
+        inputValue = start + end;
+        onDelete && onDelete(inputValue);
         return;
       }
 
@@ -175,86 +186,17 @@ export default (
       hanziList.value = [];
     },
   };
-  const zhSpan =
-    "<span style='font-size: 14px'>中</span>/<span style='font-size: 12px; color: #999'>英</span>";
-  const enSpan =
-    "<span style='font-size: 14px'>英</span>/<span style='font-size: 12px; color: #999'>中</span>";
 
+  /**初始化键盘元素 */
   function initKeyboardEle() {
     keyboard.value = new Keyboard({
       onChange: (input) => onChange(input),
       onKeyPress: (button) => onKeyPress(button),
-      buttonTheme: [
-        {
-          class: "myCustomClass",
-          buttons:
-            "{symbol} {participle} {switchLower} {numbers} {backspace} {shift} {ent} {abc}",
-        },
-        {
-          class: "myCustomPlaceholder",
-          buttons: "{ph}",
-        },
-        {
-          class: "myCustomEnter",
-          buttons: "{ent}",
-        },
-        {
-          class: "myCustomSpace",
-          buttons: "{space}",
-        },
-        {
-          class: "myCustomNumber",
-          buttons: "1 2 3 4 5 6 7 8 9 0",
-        },
-      ],
-      mergeDisplay: true,
-      layoutName: "default",
-      layout: {
-        default: [
-          "Q W E R T Y U I O P",
-          "A S D F G H J K L",
-          "{participle} Z X C V B N M {backspace}",
-          "{symbol} {numbers} ， {space} 。 {shift} {ent}",
-        ],
-        lower: [
-          "Q W E R T Y U I O P",
-          "A S D F G H J K L",
-          "{switchLower} Z X C V B N M {backspace}",
-          "{symbol} {numbers} , {space} . {shift} {ent}",
-        ],
-        shift: [
-          "q w e r t y u i o p",
-          "a s d f g h j k l",
-          "{switchLower} z x c v b n m {backspace}",
-          "{symbol} {numbers} , {space} . {shift} {ent}",
-        ],
-        numbers: ["1 2 3", "4 5 6", "7 8 9", "{abc} 0 {backspace}"],
-      },
-      display: {
-        "{participle}": "分词",
-        "{ph}": " ",
-        "{space}": " ",
-        "{numbers}": "123",
-        "{ent}": "开始",
-        "{escape}": "esc ⎋",
-        "{tab}": "tab ⇥",
-        "{backspace}": "⌫",
-        "{capslock}": "caps lock ⇪",
-        "{shift}": zhSpan,
-        "{controlleft}": "ctrl ⌃",
-        "{controlright}": "ctrl ⌃",
-        "{altleft}": "alt ⌥",
-        "{altright}": "alt ⌥",
-        "{metaleft}": "cmd ⌘",
-        "{metaright}": "cmd ⌘",
-        "{abc}": "ABC",
-        "{switchLower}": "大写",
-        "{symbol}": "符",
-      },
+      ...keyboardEle,
     });
   }
   const isNumbers = ref(false);
-  // 监听键盘改变
+  /**监听键盘改变 */
   function onChange(input: string) {
     if (
       isNumbers.value ||
@@ -321,7 +263,7 @@ export default (
   let islower = 0;
   function switchLower() {
     keyboard.value?.setOptions({
-      layoutName: islower == 0 ? "lower" : "shift",
+      layoutName: islower == 0 ? LayoutName.Lower : LayoutName.Shift,
       display: {
         "{participle}": "分词",
         "{numbers}": "123",
@@ -339,6 +281,7 @@ export default (
         "{metaright}": "cmd ⌘",
         "{abc}": "ABC",
         "{switchLower}": islower == 0 ? "小写" : "大写",
+        "{symbol}": "符",
       },
     });
     islower = islower == 0 ? 1 : 0;
@@ -346,9 +289,10 @@ export default (
 
   function handleShift() {
     const currentLayout = keyboard.value?.options.layoutName;
-    const shiftToggle = currentLayout === "default" ? "shift" : "default";
-
-    console.log("当前布局:", shiftToggle);
+    const shiftToggle =
+      currentLayout === LayoutName.Default
+        ? LayoutName.Shift
+        : LayoutName.Default;
 
     if (currentKbShift.value == "zh") {
       currentKbShift.value = "en";
@@ -366,7 +310,7 @@ export default (
         "{tab}": "tab ⇥",
         "{backspace}": "⌫",
         "{capslock}": "caps lock ⇪",
-        "{shift}": shiftToggle === "default" ? zhSpan : enSpan,
+        "{shift}": shiftToggle === LayoutName.Default ? zhSpan : enSpan,
         "{controlleft}": "ctrl ⌃",
         "{controlright}": "ctrl ⌃",
         "{altleft}": "alt ⌥",
@@ -375,34 +319,41 @@ export default (
         "{metaright}": "cmd ⌘",
         "{abc}": "ABC",
         "{switchLower}": "大写",
+        "{symbol}": "符",
       },
     });
   }
 
+  /**
+   * 点击按钮 `123`
+   * or
+   * 点击按钮 `ABC`
+   */
   function handleNumbers() {
     const currentLayout = keyboard.value?.options.layoutName;
 
-    const numbersToggle = currentLayout !== "numbers" ? "numbers" : "default";
-    console.log("currentLayout:", currentLayout);
+    const numbersToggle =
+      currentLayout !== LayoutName.Numbers
+        ? LayoutName.Numbers
+        : LayoutName.Default;
 
-    console.log("currentKbShift.value:", currentKbShift.value);
+    let layoutName: LayoutName = LayoutName.Numbers;
 
-    let layoutName = "numbers";
-
-    if (numbersToggle == "default") {
+    if (numbersToggle == LayoutName.Default) {
       if (currentKbShift.value == "en") {
         // 英文
-        layoutName = "shift";
+        layoutName = LayoutName.Shift;
         if (islower == 0) {
           // 小写
-          layoutName = "lower";
+          layoutName = LayoutName.Lower;
         }
       } else {
         // 中文
-        layoutName = "default";
+        layoutName = LayoutName.Default;
       }
     }
 
+    /**设置/更新 功能按钮 */
     keyboard.value?.setOptions({
       layoutName,
       display: {
@@ -413,7 +364,7 @@ export default (
         "{tab}": "tab ⇥",
         "{backspace}": "⌫",
         "{capslock}": "caps lock ⇪",
-        "{shift}": layoutName == "shift" ? enSpan : zhSpan,
+        "{shift}": layoutName == LayoutName.Shift ? enSpan : zhSpan,
         "{controlleft}": "ctrl ⌃",
         "{controlright}": "ctrl ⌃",
         "{altleft}": "alt ⌥",
@@ -422,6 +373,7 @@ export default (
         "{metaright}": "cmd ⌘",
         "{abc}": "ABC",
         "{switchLower}": islower == 0 ? "大写" : "小写",
+        "{symbol}": "符",
       },
     });
   }
@@ -430,7 +382,8 @@ export default (
     if (!checkInputDom()) return;
     // 将输入的文字插入到文本框中
     inputDom.value += str;
-    onText && onText(inputDom.value, str);
+    inputValue += str;
+    onText && onText(inputValue, str);
   }
 
   function checkInputDom() {
@@ -441,21 +394,25 @@ export default (
     } else return true;
   }
 
-  // 初始化键盘
+  /**初始化拼音键盘 */
   function initPinYinKeyboard() {
     SimpleInputMethod.init();
     initKeyboardEle();
   }
 
+  /**切换input输入框的id */
   function changeInputId(inputId: string) {
     if (!inputId) {
       console.error("inputId 不能为空");
     }
     const input = document.getElementById(inputId) as HTMLInputElement;
-    if (!input) {
+    console.log("changeInputId", input);
+
+    if (!input && inputId != "-") {
       console.error(
         "使用此inputId获取不到元素, 请检查inputId是否错误 or 在onMounted之后再改变inputId"
       );
+      return;
     }
     inputDom = input;
   }
@@ -473,5 +430,6 @@ export default (
     initKeyboardEle,
     isShowSymbol,
     symbolBack,
+    changeInputValue,
   };
 };

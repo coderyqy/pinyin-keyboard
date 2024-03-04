@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Input Box</title>
+  <style>
+    /* 样式用于模拟光标的宽度 */
+    .cursor {
+      width: 1px;
+      height: 100%;
+      background-color: black;
+      position: absolute;
+      pointer-events: none;
+      /* 确保光标不会干扰点击事件 */
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="myInput" style="position:relative; border:1px solid #ccc; padding:10px; min-height:2em; width:300px;"></div>
+
+  <button onclick="addText()">添加文字</button>
+
+  <script>
+    // 获取输入框元素
+    var inputBox = document.getElementById('myInput');
+
+    // 创建光标元素并添加到输入框底部
+    var cursor = document.createElement('div');
+    cursor.classList.add('cursor');
+    inputBox.appendChild(cursor);
+    inputBox.addEventListener('mousemove', updateCursorPosition);
+    inputBox.addEventListener('click', insertText);
+
+    function updateCursorPosition(e) {
+      // 更新光标位置
+      cursor.style.left = e.pageX - inputBox.getBoundingClientRect().left + 'px';
+      cursor.style.top = e.pageY - inputBox.getBoundingClientRect().top + 'px';
+    }
+
+    // function insertText(e) {
+    //   // 获取点击位置的文本节点
+    //   var currentNode = getCurrentNode(e.target, e.offsetX);
+    //   // 如果找到了节点，插入文本
+    //   if (currentNode) {
+    //     var textToInsert = "Test"; // 这里是你想插入的文本
+    //     currentNode.insertBefore(document.createTextNode(textToInsert), currentNode.firstChild);
+    //   } else {
+    //     // 如果没有找到节点，则在末尾添加文本
+    //     e.target.appendChild(document.createTextNode(textToInsert));
+    //   }
+    //   // 更新光标位置
+    //   updateCursorPosition(e);
+    // }
+
+    // 递归函数，用来查找点击位置的文本节点
+    function getCurrentNode(node, offset) {
+      var currentOffset = 0;
+      for (var child of node.childNodes) {
+        if (child.nodeType === Node.TEXT_NODE) {
+          var childOffset = child.length;
+          if (currentOffset + childOffset > offset && currentOffset < offset) {
+            return child;
+          }
+        } else if (child.nodeType === Node.ELEMENT_NODE) {
+          if (getCurrentNode(child, offset - currentOffset)) {
+            return child;
+          }
+          currentOffset += child.offsetWidth;
+        }
+      }
+      return null;
+    }
+
+    function addText() {
+      var textToInsert = "Button Clicked! "; // 这里是你想插入的文本
+      inputBox.appendChild(document.createTextNode(textToInsert));
+      updateCursorPosition({ target: inputBox, offsetX: inputBox.offsetWidth }); // 将光标移动到末尾
+    }
+  </script>
+
+</body>
+
+</html>

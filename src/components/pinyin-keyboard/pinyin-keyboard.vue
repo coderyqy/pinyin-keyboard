@@ -36,10 +36,10 @@
       <slot name="utils-content"></slot>
     </div>
 
-    <div class="pinyin-symbol" v-show="isShowSymbol">
+    <div class="pinyin-symbol" v-if="isShowSymbol">
       <div class="symbol">
         <template v-for="(zhs, zh_i) in publishZHSymbol" :key="zh_i">
-          <span>{{ zhs }}</span>
+          <span @click.="changeInputValue(zhs)">{{ zhs }}</span>
         </template>
       </div>
       <div class="symbol-utils">
@@ -99,6 +99,10 @@ function hidekB() {
   emit("update:isShow", false);
 }
 
+function demo() {
+  console.log("----");
+}
+
 const {
   inputPinyin,
   hanziList,
@@ -107,6 +111,7 @@ const {
   changeInputId,
   isShowSymbol,
   symbolBack,
+  changeInputValue,
 } = initKeyboard(
   props.onText,
   props.onHideBtn,

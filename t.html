@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Input</title>
+  <style>
+    /* 模拟输入框的样式 */
+    .custom-input {
+      border: 1px solid #ccc;
+      width: 300px;
+      height: 40px;
+      font-size: 24px;
+      cursor: text;
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+
+    .cursor {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 100%;
+      background-color: black;
+      animation: blink-caret 1s infinite;
+    }
+
+    @keyframes blink-caret {
+      50% {
+        background-color: transparent;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="customInput" class="custom-input" onclick="moveCursor()">
+    <span id="cursor" class="cursor"></span>
+    <div id="content" aria-multiline="true" tabindex="0"></div>
+  </div>
+
+  <button onclick="addText()">添加文字</button>
+
+  <script>
+    var cursor = document.getElementById('cursor');
+    var content = document.getElementById('content');
+    let isActive = 0
+    let cursorPos = 0
+    const fontSize = 24
+
+    function moveCursor() {
+      // 点击输入框时，设置光标位置
+      content.focus();
+      if (isActive == 1) {
+        updateCursorPos(-1);
+      } else {
+        isActive = 1
+      }
+    }
+
+    function updateCursorPos(i = 0) {
+      // 更新光标位置
+      var range = document.getSelection().getRangeAt(0);
+      var rect = range.getBoundingClientRect();
+      console.log("cursorPos1", cursorPos);
+      if (cursorPos === 0) {
+        cursorPos = fontSize + (rect.width / 2);
+      } else {
+        if (i == -1) {
+          cursorPos = (rect.left - 9) + (rect.width / 2);
+        } else {
+          cursorPos += i
+        }
+      }
+      console.log("cursorPos2:", cursorPos);
+      cursor.style.left = cursorPos + 'px';
+    }
+
+    content.addEventListener('input', function () {
+      // 监听输入事件，更新光标位置
+      updateCursorPos();
+    });
+
+    function addText() {
+      // 获取当前光标位置
+      var selection = window.getSelection();
+      var range = selection.getRangeAt(0);
+      var startOffset = range.startOffset;
+
+      // 添加文字到内容区域
+      const text = "字"
+      content.innerText = content.innerText.slice(0, startOffset) + text + content.innerText.slice(startOffset);
+      content.focus();
+      updateCursorPos(text.length * fontSize);
+    }
+  </script>
+</body>
+
+</html>
